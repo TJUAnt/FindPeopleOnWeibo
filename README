@@ -1,0 +1,23 @@
+This is a small project which tries to find a class of people on Weibo.
+The main program is a crawler which gets information from Internet. There
+are four source file in this folder.
+
+a. WeiboUser.py
+This file defined Weibo user class which contains some user properties and functions.
+
+b. WeiboLogin.py
+This file defined the function of logining in Weibo in order to help the crawler get 
+information.
+
+c. WeiboClassSearchDB.py
+This file contains the main source code of this crawler.
+
+d. ShowRes.py
+Run this file can built a html file to show the crawler result.
+
+This project is writtern by python and uses redis to store data which gets from Internet.
+In order to run this project, python2.7 and redis are required. 
+
+Some results can be visit on the url "http://xzrcollection.sinaapp.com/". The index page 
+has shown some famous "little people" on Weibo which gets by this program.
+
