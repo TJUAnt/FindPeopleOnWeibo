@@ -1,6 +1,6 @@
-This is a small project which tries to find a class of people on Weibo.
-The main program is a crawler which gets information from Internet. There
-are four source file in this folder.
+This is a small project which tries to find some people who belong to a same group 
+or have some same properties. The main program is a crawler which gets information 
+from Internet. There are four source file in this folder.
 
 a. WeiboUser.py
 This file defined Weibo user class which contains some user properties and functions.
