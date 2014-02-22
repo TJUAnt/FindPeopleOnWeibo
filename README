@@ -18,6 +18,11 @@ Run this file can built a html file to show the crawler result.
 This project is writtern by python and uses redis to store data which gets from Internet.
 In order to run this project, python2.7 and redis are required. 
 
+To run this demo, just type:
+    % python WeiboClassSearchDB.py
+and input some uids of the people on Weibo in the group which you want to search. 
+
+
 Some results can be visit on the url "http://xzrcollection.sinaapp.com/". The index page 
 has shown some famous "little people" on Weibo which gets by this program.
 

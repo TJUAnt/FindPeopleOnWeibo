@@ -128,7 +128,7 @@ if __name__ == '__main__':
     r = redis.Redis(connection_pool=pool)
     #read_black_dict()
     uidlist = []
-    uidlist = raw_input('Please input the uid that you want to search(separated by space):').split()
+    uidlist = raw_input('Please input the some\'s Weibo uids in the group(separated by space, at least 4):').split()
     if len(uidlist) < 4:
         print 'not enough infomation for search!!!'
     else:
