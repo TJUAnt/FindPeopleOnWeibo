@@ -1,8 +1,9 @@
 import json 
 import sys 
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import urllib
 import urllib2
-import redis
 import socket
 from WeiboLogin import Login
 import re
@@ -11,7 +12,7 @@ import time
 class WeiboUser(object):
     'Weibo User class, attribute:uid,name,follow[],fans[],friends[],href(link_href),fans_sum,follow_sum,msg_sum'
     #User object constructor: uid, name, href are aquired
-    def __init__(self,_uniqueid, _displayname, _href, follow = 0, fan = 0, msg = 0, sex = '', dir_txt =''):
+    def __init__(self,_uniqueid, _displayname, _href,  follow = 0, fan = 0, msg = 0, sex = '', dir_txt =''):
         self.uid = _uniqueid
         self.name = _displayname
         self.follow = []
@@ -24,6 +25,9 @@ class WeiboUser(object):
         self.msg_sum = msg
         self.sex = sex
         self.dir_txt = dir_txt
+        self.msg_list = []
+        self.zz_list = []
+        self.page_sum = -1
 
 
     #print weibo_usr information
@@ -46,6 +50,7 @@ class WeiboUser(object):
     def visit_url(self,url):
         socket.setdefaulttimeout(10)
         print 'Visiting... %s' % url
+        time.sleep(2)
         try:
             follow_data = urllib2.urlopen(url).read()
             type = sys.getfilesystemencoding()
@@ -57,7 +62,10 @@ class WeiboUser(object):
             print 'Visiting url failed! Error %s' % e
             print 'Visiting... %s' % url
             follow_data = self.visit_url(url)
+        if follow_data.strip() == '':
+            follow_data = self.visit_url(url)
         return follow_data
+    
 
     def get_self_fans_follow(self):
         self.fans_follow = []
@@ -313,41 +321,81 @@ class WeiboUser(object):
         self.sex = pt.search(data).group(1)
         pt = re.compile('<em class="S_txt2"><a [^>]* title="(.*?)">[^<]*</a></em>')
         self.dir_txt = pt.search(data).group(1)
+        pt = re.compile('')
+        self.page_sum = pt.search(data).group(1)
         #pt = re.compile('')
 
     #get the infomation of WeiboUser 
     def get_user_info(self):
-        url = 'http://weibo.com/'+self.uid
-        follow_data = self.visit_url(url)
-        self.get_info_action(follow_data)
+        self.get_info_action()
         print self.fans_sum, self.follow_sum, self.fans_sum
 
+    def get_user_msg_page_sum(self, follow_data):
+        ptn = re.compile('<a bpfilter="page" action-type="feed_list_page_more" action-data="currentPage=(.*?)&countPage=(.*?)"[^>]*>', re.UNICODE)
+        return ptn.findall(follow_data)
 
+    def get_user_msg_info(self, follow_data):
+        ptn = re.compile('<div class="WB_text" node-type="feed_list_content">(.*?)</div>')
+        return ptn.findall(follow_data)
+
+    def get_user_first_msg_list(self, page_id):
+        url = 'http://weibo.com/p/%s/weibo?page=%s' % (self.uid, page_id)
+        data = self.visit_url(url).replace('\\','')
+        ptn = re.compile('<div class="WB_text" node-type="feed_list_content" [^>]*>n(.*?)</div>')
+        self.msg_list += ptn.findall(data)
+        ptn2 = re.compile('<div class="WB_text" node-type="feed_list_reason">[^<]*<em>(.*?)</em>[^<]</div>')
+        self.zz_list += ptn2.findall(data)
+        return
+
+    def get_user_bar_msg_list_by_page(self, page_id):
+        for pagebar_id in range(2):
+            url = "http://weibo.com/p/aj/mblog/mbloglist?domain=100306&pre_page=%s&page=%s&count=15&pagebar=%s&max_msign=&filtered_min_id=&pl_name=Pl_Official_LeftProfileFeed__23&id=%s&script_uri=/p/%s/weibo&feed_type=0" % (page_id, page_id, pagebar_id, self.uid, self.uid) 
+            data = json.loads(self.visit_url(url))
+            data = data['data']
+            ptn = re.compile('<div class="WB_text" node-type="feed_list_content" [^>]*>\n(.*?)</div>',re.UNICODE)
+            self.msg_list += ptn.findall(data)
+            ptn2 = re.compile('<div class="WB_text" node-type="feed_list_reason">\n.*<em>(.*?)</em>\n.*</div>',re.UNICODE)
+            self.zz_list += ptn2.findall(data)
+            if pagebar_id == 1:
+                ll = self.get_user_msg_page_sum(data)
+                if len(ll) > 0:
+                    ll = ll[0]
+                if len(ll) == 2 and int(ll[0]) == int(ll[1]):
+                    return False
+        return True
+
+    def get_user_msg_list(self):
+        i = 0
+        while True:
+#        for i in range(1):
+            i = i + 1
+            self.get_user_first_msg_list(i)
+            if not self.get_user_bar_msg_list_by_page(i):
+                break
+        return
 if __name__ == '__main__':
 
     newlogin = Login('dujun881228@sohu.com','dujun881228')
     newlogin.set_cookie()
     datastream = newlogin.login_action()
-    print datastream
-    uid, usrid, name = newlogin.get_loginuser_info(datastream)
-    #weibo_usr = WeiboUser(uid,name,'')
-    uid1 = '1994416314'
-    uid2 = '2142928827'
-
-    uidlist = []
-    uidlist.append(uid1)
-    uidlist.append(uid2)
-    weibo_usr = WeiboUser('', '', '')
-    weibo_usr.get_friends_by_web(uidlist)
-    print len(weibo_usr.friends)
-    for uid in weibo_usr.friends :
-        print uid
-    weibo_usr = WeiboUser(uid1,'','')
-    weibo_usr.get_info_action()
-    weibo_usr.print_info()
-    ss =  weibo_usr.turn_json()
-    ss = str(ss).replace("u'","'")
-    ss = ss.replace("'",'"')
-    res = json.loads(ss)
-    print res['uid'], res['name']
-
+##fangzhouzi 1035051195403385
+#when getting one's msg_list, the weibo_usr uid should be long_id.
+    weibo_usr = WeiboUser('1035051195403385', '', '')
+    weibo_usr.get_user_msg_list()
+    w = open('msg_list.txt','w')
+    w2 = open('zz_list.txt','w')
+    ptn = re.compile('.*\u8f6c\u57fa\u56e0.*')
+    idx = 1
+    for msg in weibo_usr.msg_list:
+        w.writelines('%s:\t%s\n\n' % (str(idx),msg.strip().encode('utf-8')))
+        idx += 1
+    print len(weibo_usr.msg_list)
+    idx = 1
+    for zz in weibo_usr.zz_list:
+        w2.writelines('%s:\t%s\n\n' % (str(idx),zz.strip().encode('utf-8')))
+        idx += 1
+    print len(weibo_usr.zz_list)
+    w.flush()
+    w.close()
+    w2.flush()
+    w2.close()
