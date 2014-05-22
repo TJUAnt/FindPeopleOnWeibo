@@ -127,7 +127,7 @@ class Login(object):
         return user_info['uniqueid'], user_info['userid'], user_info['displayname']
 
 if __name__ == '__main__':
-    new_login = Login('dujun881228@sohu.com','dujun881228')
+    new_login = Login('usrname','passwd')
     new_login.set_cookie()
     datastream = new_login.login_action()
     usrid,uid,name = new_login.get_loginuser_info(datastream)
