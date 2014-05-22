@@ -375,7 +375,7 @@ class WeiboUser(object):
         return
 if __name__ == '__main__':
 
-    newlogin = Login('','')
+    newlogin = Login('usrname','passwd')
     newlogin.set_cookie()
     datastream = newlogin.login_action()
 ##fangzhouzi 1035051195403385
