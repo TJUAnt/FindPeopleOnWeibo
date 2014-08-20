@@ -54,6 +54,7 @@ def Process_Single_User(r, weibo_usr, flag):
         if uuid not in usr_list:
             usr_list[uuid] = set([])
         usr_list[uuid].add(uid)
+        usr_list[uid].add(uuid)
     weibo_usr.get_self_fans_follow()
     cnt = 0
     for tu in weibo_usr.fans_follow:
@@ -69,6 +70,7 @@ def Process_Single_User(r, weibo_usr, flag):
             if tu.uid not in usr_list:
                 usr_list[tu.uid] = set([])
             usr_list[tu.uid].add(uid)
+            usr_list[uid].add(tu.uid)
 
 def WeiboClassSearch(r,flag,uidlist):
     global dict_lock
@@ -88,6 +90,7 @@ def WeiboClassSearch(r,flag,uidlist):
         weibo_usr = WeiboUser(uid,'','')
         weibo_usr.get_info_action()
         usr_dict[uid] = 1
+        usr_list[uid] = set([])
         Process_Single_User(r,weibo_usr,flag)
         finish_dict[uid] = 1
     print finish_dict
@@ -132,4 +135,4 @@ if __name__ == '__main__':
     if len(uidlist) < 4:
         print 'not enough infomation for search!!!'
     else:
-        WeiboClassSearch(r, 0, uidlist)
+        WeiboClassSearch(r, 1, uidlist)
